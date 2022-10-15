@@ -1,44 +1,92 @@
-import React, { useState } from 'react'
-import Button from './components/Button '
-import Input from './components/Input'
-import './App.css'
+import React from "react";
+import "./App.css";
 
 const App = () => {
-  const [text, setText] = useState("");
-  const [count, setCount] = useState(0);
-  const textHandler = (e) => {
-    setText(e.target.value);
-  }
-  const addTodo = () => {
-    // console.log(text);
+  const [todos, setTodos] = React.useState([]);
+  const [todo, setTodo] = React.useState("");
+  const [todoEditing, setTodoEditing] = React.useState(null);
+  const [editingText, setEditingText] = React.useState("");
 
-    const node = document.createElement("li");
-    const textnode = document.createTextNode(`${text}`);
-    node.appendChild(textnode);
-    document.getElementById('display').appendChild(node);
-    setCount(prev=> prev+1);
-    // setText("");
+  function handleSubmit(e) {
+    e.preventDefault();
+
+    const newTodo = {
+      id: new Date().getTime(),
+      text: todo,
+      completed: false,
+    };
+    setTodos([...todos].concat(newTodo));
+    setTodo("");
   }
-  const clearTodo =()=>{
-    // setText("");
-    setCount(0);
-    document.getElementById('display').innerHTML = '';
+
+  function deleteTodo(id) {
+    let updatedTodos = [...todos].filter((todo) => todo.id !== id);
+    setTodos(updatedTodos);
   }
-  return (
-    <div className='app_wrapper'>
-      <Input textHandler={textHandler} />
-      <Button value="ADD" clickHandler={addTodo} />
-      {
-        count !==0 && 
-        (<Button value="CLEAR TODO" clickHandler={clearTodo}/>)
+
+  function toggleComplete(id) {
+    let updatedTodos = [...todos].map((todo) => {
+      if (todo.id === id) {
+        todo.completed = !todo.completed;
       }
-      <div id='display'>
-        <ol>
+      return todo;
+    });
+    setTodos(updatedTodos);
+  }
 
-        </ol>
-      </div>
+  function submitEdits(id) {
+    const updatedTodos = [...todos].map((todo) => {
+      if (todo.id === id) {
+        todo.text = editingText;
+      }
+      return todo;
+    });
+    setTodos(updatedTodos);
+    setTodoEditing(null);
+  }
+
+  return (
+    <div id="todo-list">
+      <h1>Todo List</h1>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          onChange={(e) => setTodo(e.target.value)}
+          value={todo}
+        />
+        <button type="submit">Add Todo</button>
+      </form>
+      {todos.map((todo) => (
+        <div key={todo.id} className="todo">
+          <div className="todo-text">
+            <input
+              type="checkbox"
+              id="completed"
+              checked={todo.completed}
+              onChange={() => toggleComplete(todo.id)}
+            />
+            {todo.id === todoEditing ? (
+              <input
+                type="text"
+                onChange={(e) => setEditingText(e.target.value)}
+              />
+            ) : (
+              <div>{todo.text}</div>
+            )}
+          </div>
+          <div className="todo-actions">
+            {todo.id === todoEditing ? (
+              <button onClick={() => submitEdits(todo.id)}>Submit Edits</button>
+            ) : (
+              <button onClick={() => setTodoEditing(todo.id)}>Edit</button>
+            )}
+
+            <button onClick={() => deleteTodo(todo.id)}>Delete</button>
+          </div>
+        </div>
+      ))}
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;
